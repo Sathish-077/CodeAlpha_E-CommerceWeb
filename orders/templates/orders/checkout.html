@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Checkout — ShopNest{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <h2 class="section-title mb-4">Checkout</h2>
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm rounded-3 p-4">
+                <h5 class="fw-700 mb-3">Shipping Information</h5>
+                <form method="POST" id="checkoutForm">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label small fw-600">Full Name *</label>
+                            <input type="text" name="full_name" class="form-control" required value="{{ user.get_full_name }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-600">Email *</label>
+                            <input type="email" name="email" class="form-control" required value="{{ user.email }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-600">Phone *</label>
+                            <input type="tel" name="phone" class="form-control" required placeholder="+91 98765 43210">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-600">Address *</label>
+                            <textarea name="address" class="form-control" rows="2" required placeholder="Street address, apartment, etc."></textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-600">City *</label>
+                            <input type="text" name="city" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-600">State *</label>
+                            <input type="text" name="state" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-600">Pincode *</label>
+                            <input type="text" name="pincode" class="form-control" required maxlength="6">
+                        </div>
+                        <div class="col-12 mt-2">
+                            <label class="form-label small fw-600">Payment Method</label>
+                            <div class="d-flex gap-3">
+                                <label class="d-flex align-items-center gap-2 p-3 border rounded-3 flex-grow-1 cursor-pointer">
+                                    <input type="radio" name="payment_method" value="cod" checked>
+                                    <span>💵 Cash on Delivery</span>
+                                </label>
+                                <label class="d-flex align-items-center gap-2 p-3 border rounded-3 flex-grow-1 cursor-pointer">
+                                    <input type="radio" name="payment_method" value="online">
+                                    <span>💳 Online Payment</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-600">Order Notes (optional)</label>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="Any special instructions?"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100 mt-4"><i class="fas fa-check-circle me-2"></i>Place Order</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm rounded-3 p-4 sticky-top" style="top:80px;">
+                <h5 class="fw-700 mb-3">Order Summary</h5>
+                {% for item in cart.items.all %}
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">{{ item.product.name }} × {{ item.quantity }}</span>
+                    <span class="fw-600 small">₹{{ item.subtotal }}</span>
+                </div>
+                {% endfor %}
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Subtotal</span><span>₹{{ cart.total }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Shipping</span>
+                    {% if shipping_cost == 0 %}<span class="text-success">Free</span>{% else %}<span>₹{{ shipping_cost }}</span>{% endif %}
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-700 fs-5">Total</span>
+                    <span class="fw-800 fs-5" style="color:#e94560;">₹{{ cart.total|add:shipping_cost }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Login — ShopNest{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <div class="text-center mb-4">
+                    <h2 class="fw-800" style="color:#1a1a2e;">Welcome Back</h2>
+                    <p class="text-muted">Sign in to your ShopNest account</p>
+                </div>
+                <form method="POST">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label class="form-label fw-600">{{ field.label }}</label>
+                        <input type="{{ field.field.widget.input_type }}" name="{{ field.html_name }}" class="form-control rounded-3 {% if field.errors %}is-invalid{% endif %}" value="{{ field.value|default:'' }}" {% if field.field.required %}required{% endif %}>
+                        {% for error in field.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary w-100 py-2 mt-2 rounded-3 fw-600">Sign In</button>
+                </form>
+                <hr class="my-4">
+                <p class="text-center mb-0 text-muted">Don't have an account? <a href="{% url 'accounts:register' %}" class="text-danger fw-600">Create one</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

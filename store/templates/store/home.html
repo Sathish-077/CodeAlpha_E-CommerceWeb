@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}ShopNest — Home{% endblock %}
+{% block content %}
+
+<!-- Hero -->
+<section style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 500px; display:flex; align-items:center;">
+    <div class="container text-white">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <p class="text-uppercase fw-semibold mb-2" style="color:#e94560; letter-spacing:3px;">New Arrivals 2025</p>
+                <h1 class="display-4 fw-900 mb-4" style="line-height:1.1;">Discover Products<br>You'll <span style="color:#e94560;">Love</span></h1>
+                <p class="lead mb-4 text-muted">Shop the latest trends with free shipping on orders above ₹500</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{% url 'store:product_list' %}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill">Shop Now <i class="fas fa-arrow-right ms-2"></i></a>
+                    <a href="{% url 'store:product_list' %}" class="btn btn-outline-light btn-lg px-4 py-3 rounded-pill">Browse Categories</a>
+                </div>
+                <div class="d-flex gap-4 mt-5">
+                    <div><h4 class="fw-800 mb-0" style="color:#e94560;">500+</h4><small class="text-muted">Products</small></div>
+                    <div><h4 class="fw-800 mb-0" style="color:#e94560;">Free</h4><small class="text-muted">Shipping ₹500+</small></div>
+                    <div><h4 class="fw-800 mb-0" style="color:#e94560;">24/7</h4><small class="text-muted">Support</small></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories -->
+{% if categories %}
+<section class="py-5">
+    <div class="container">
+        <h2 class="section-title mb-4">Shop by Category</h2>
+        <div class="row g-3">
+            {% for cat in categories %}
+            <div class="col-6 col-md-4 col-lg-2">
+                <a href="{% url 'store:product_list' %}?category={{ cat.slug }}" class="text-decoration-none">
+                    <div class="card border-0 text-center py-4 h-100" style="border-radius:14px; background: linear-gradient(135deg, #1a1a2e, #0f3460); color:white; transition: transform .2s;">
+                        <div class="mb-2" style="font-size:2rem;">🛍️</div>
+                        <div class="fw-600 small">{{ cat.name }}</div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Products -->
+{% if featured %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title mb-0">Featured Products</h2>
+            <a href="{% url 'store:product_list' %}" class="btn btn-outline-dark btn-sm rounded-pill">View All <i class="fas fa-arrow-right ms-1"></i></a>
+        </div>
+        <div class="row g-4">
+            {% for product in featured %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="product-card h-100">
+                    <div class="product-img-wrap">
+                        {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        {% else %}<div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background:#e9ecef;font-size:3rem;">🛍️</div>{% endif %}
+                        {% if product.discount_percent %}<span class="badge-discount">-{{ product.discount_percent }}%</span>{% endif %}
+                        <span class="badge-featured">⭐ Featured</span>
+                    </div>
+                    <div class="card-body p-3">
+                        <p class="text-muted small mb-1">{{ product.category.name }}</p>
+                        <h6 class="product-title mb-2"><a href="{{ product.get_absolute_url }}" class="text-decoration-none text-dark">{{ product.name }}</a></h6>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="price-current">₹{{ product.get_price }}</span>
+                            {% if product.discount_price %}<span class="price-original">₹{{ product.price }}</span>{% endif %}
+                        </div>
+                        {% if product.in_stock %}
+                        <form method="POST" action="{% url 'store:add_to_cart' product.id %}">
+                            {% csrf_token %}<input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn-add-cart"><i class="fas fa-cart-plus me-1"></i>Add to Cart</button>
+                        </form>
+                        {% else %}<button class="btn-add-cart" disabled style="opacity:0.5;">Out of Stock</button>{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- New Arrivals -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title mb-0">New Arrivals</h2>
+            <a href="{% url 'store:product_list' %}" class="btn btn-outline-dark btn-sm rounded-pill">View All</a>
+        </div>
+        <div class="row g-4">
+            {% for product in new_arrivals %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="product-card h-100">
+                    <div class="product-img-wrap">
+                        {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        {% else %}<div class="w-100 h-100 d-flex align-items-center justify-content-center" style="background:#e9ecef;font-size:3rem;">📦</div>{% endif %}
+                        {% if product.discount_percent %}<span class="badge-discount">-{{ product.discount_percent }}%</span>{% endif %}
+                    </div>
+                    <div class="card-body p-3">
+                        <p class="text-muted small mb-1">{{ product.category.name }}</p>
+                        <h6 class="product-title mb-2"><a href="{{ product.get_absolute_url }}" class="text-decoration-none text-dark">{{ product.name }}</a></h6>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="price-current">₹{{ product.get_price }}</span>
+                            {% if product.discount_price %}<span class="price-original">₹{{ product.price }}</span>{% endif %}
+                        </div>
+                        {% if product.in_stock %}
+                        <form method="POST" action="{% url 'store:add_to_cart' product.id %}">
+                            {% csrf_token %}<input type="hidden" name="quantity" value="1">
+                            <button type="submit" class="btn-add-cart"><i class="fas fa-cart-plus me-1"></i>Add to Cart</button>
+                        </form>
+                        {% else %}<button class="btn-add-cart" disabled style="opacity:0.5;">Out of Stock</button>{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Value Props -->
+<section class="py-5" style="background: linear-gradient(135deg, #1a1a2e, #0f3460); color:white;">
+    <div class="container">
+        <div class="row g-4 text-center">
+            <div class="col-md-3"><div style="font-size:2.5rem;">🚚</div><h6 class="mt-2">Free Shipping</h6><small class="text-muted">On orders above ₹500</small></div>
+            <div class="col-md-3"><div style="font-size:2.5rem;">🔒</div><h6 class="mt-2">Secure Payment</h6><small class="text-muted">100% secure checkout</small></div>
+            <div class="col-md-3"><div style="font-size:2.5rem;">↩️</div><h6 class="mt-2">Easy Returns</h6><small class="text-muted">7-day return policy</small></div>
+            <div class="col-md-3"><div style="font-size:2.5rem;">🎧</div><h6 class="mt-2">24/7 Support</h6><small class="text-muted">Always here for you</small></div>
+        </div>
+    </div>
+</section>
+{% endblock %}

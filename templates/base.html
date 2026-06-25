@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ShopNest{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --accent: #e94560;
+            --accent-light: #ff6b6b;
+            --surface: #16213e;
+            --card-bg: #0f3460;
+            --text-light: #e0e0e0;
+            --text-muted: #9e9e9e;
+            --border: rgba(255,255,255,0.08);
+            --success: #2ecc71;
+        }
+        body { background: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+
+        /* Navbar */
+        .navbar { background: var(--primary) !important; padding: 12px 0; box-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+        .navbar-brand { font-size: 1.6rem; font-weight: 800; color: white !important; letter-spacing: -0.5px; }
+        .navbar-brand span { color: var(--accent); }
+        .nav-link { color: rgba(255,255,255,0.8) !important; font-weight: 500; transition: color .2s; }
+        .nav-link:hover { color: var(--accent) !important; }
+        .cart-badge { background: var(--accent); color: white; border-radius: 50%; padding: 2px 7px; font-size: 0.72rem; font-weight: 700; }
+        .search-input { border-radius: 25px 0 0 25px !important; border: none; padding: 8px 18px; }
+        .search-btn { border-radius: 0 25px 25px 0 !important; background: var(--accent); border: none; color: white; padding: 8px 16px; }
+
+        /* Messages */
+        .messages-container { position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 320px; }
+        .alert { border-radius: 10px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+
+        /* Cards */
+        .product-card { border: none; border-radius: 12px; overflow: hidden; transition: transform .25s, box-shadow .25s; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.14); }
+        .product-img-wrap { height: 220px; overflow: hidden; background: #f0f0f0; position: relative; }
+        .product-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+        .product-card:hover .product-img-wrap img { transform: scale(1.05); }
+        .badge-discount { position: absolute; top: 10px; left: 10px; background: var(--accent); color: white; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; font-weight: 700; }
+        .badge-featured { position: absolute; top: 10px; right: 10px; background: var(--primary); color: white; border-radius: 6px; padding: 3px 8px; font-size: 0.75rem; }
+        .product-title { font-size: 0.95rem; font-weight: 600; color: #1a1a2e; }
+        .price-current { font-size: 1.15rem; font-weight: 700; color: var(--accent); }
+        .price-original { font-size: 0.85rem; color: #999; text-decoration: line-through; }
+        .btn-add-cart { background: var(--primary); color: white; border: none; border-radius: 8px; padding: 7px 14px; font-size: 0.85rem; font-weight: 600; transition: background .2s; width: 100%; }
+        .btn-add-cart:hover { background: var(--accent); color: white; }
+
+        /* Buttons */
+        .btn-primary { background: var(--accent); border: none; border-radius: 8px; font-weight: 600; }
+        .btn-primary:hover { background: #c73652; border: none; }
+        .btn-dark { background: var(--primary); border: none; }
+        .btn-dark:hover { background: var(--accent); border: none; }
+
+        /* Section headings */
+        .section-title { font-size: 1.6rem; font-weight: 800; color: var(--primary); position: relative; padding-bottom: 10px; }
+        .section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 50px; height: 3px; background: var(--accent); border-radius: 2px; }
+
+        /* Footer */
+        footer { background: var(--primary); color: var(--text-light); margin-top: 60px; }
+        footer a { color: rgba(255,255,255,0.65); text-decoration: none; }
+        footer a:hover { color: var(--accent); }
+
+        /* Stars */
+        .stars { color: #f59e0b; }
+
+        /* Status badges */
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-confirmed { background: #dbeafe; color: #1e40af; }
+        .status-processing { background: #ede9fe; color: #5b21b6; }
+        .status-shipped { background: #d1fae5; color: #065f46; }
+        .status-delivered { background: #dcfce7; color: #166534; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'store:home' %}">Shop<span>Nest</span></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Search -->
+            <form class="d-flex mx-auto w-50" method="GET" action="{% url 'store:search' %}">
+                <input class="form-control search-input" type="search" name="q" placeholder="Search products..." value="{{ request.GET.q }}">
+                <button class="search-btn" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+            <!-- Nav Links -->
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <li class="nav-item"><a class="nav-link" href="{% url 'store:product_list' %}"><i class="fas fa-th me-1"></i>Products</a></li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:profile' %}"><i class="fas fa-user me-1"></i>{{ user.first_name|default:user.username }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'orders:order_list' %}"><i class="fas fa-box me-1"></i>Orders</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out-alt me-1"></i>Logout</a></li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}"><i class="fas fa-sign-in-alt me-1"></i>Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:register' %}"><i class="fas fa-user-plus me-1"></i>Register</a></li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link position-relative" href="{% url 'store:cart' %}">
+                        <i class="fas fa-shopping-cart fa-lg"></i>
+                        {% if cart_count > 0 %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Messages -->
+<div class="messages-container">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Main Content -->
+{% block content %}{% endblock %}
+
+<!-- Footer -->
+<footer class="pt-5 pb-3">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <h4 class="text-white fw-bold mb-3">Shop<span style="color:var(--accent)">Nest</span></h4>
+                <p class="text-muted">Your one-stop destination for quality products at unbeatable prices.</p>
+            </div>
+            <div class="col-lg-2">
+                <h6 class="text-white mb-3">Shop</h6>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'store:product_list' %}">All Products</a></li>
+                    <li><a href="{% url 'store:home' %}">Featured</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2">
+                <h6 class="text-white mb-3">Account</h6>
+                <ul class="list-unstyled">
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'accounts:profile' %}">My Profile</a></li>
+                    <li><a href="{% url 'orders:order_list' %}">My Orders</a></li>
+                    {% else %}
+                    <li><a href="{% url 'accounts:login' %}">Login</a></li>
+                    <li><a href="{% url 'accounts:register' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="col-lg-4">
+                <h6 class="text-white mb-3">Contact</h6>
+                <p class="text-muted"><i class="fas fa-envelope me-2"></i>support@shopnest.in</p>
+                <p class="text-muted"><i class="fas fa-phone me-2"></i>+91 98765 43210</p>
+                <p class="text-muted"><i class="fas fa-map-marker-alt me-2"></i>Chennai, Tamil Nadu</p>
+            </div>
+        </div>
+        <hr style="border-color: rgba(255,255,255,0.1);">
+        <p class="text-center text-muted mb-0">© 2025 ShopNest. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => {
+            let bsAlert = bootstrap.Alert.getOrCreateInstance(a);
+            bsAlert.close();
+        });
+    }, 4000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

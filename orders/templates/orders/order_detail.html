@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}Order #{{ order.order_number }} — ShopNest{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-800 mb-1" style="color:#1a1a2e;">Order #{{ order.order_number }}</h2>
+            <p class="text-muted mb-0">Placed on {{ order.created_at|date:"F d, Y" }} at {{ order.created_at|time:"h:i A" }}</p>
+        </div>
+        <span class="badge status-{{ order.status }} fs-6 px-4 py-2">{{ order.get_status_display }}</span>
+    </div>
+
+    <!-- Order Progress -->
+    {% if order.status != 'cancelled' %}
+    <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+        {% with steps="pending confirmed processing shipped delivered" %}
+        <div class="d-flex justify-content-between">
+            {% for step in steps.split %}
+            <div class="text-center flex-fill">
+                <div class="rounded-circle mx-auto mb-1 d-flex align-items-center justify-content-center"
+                     style="width:36px;height:36px;background:{% if order.status == step or order.status == 'delivered' %}#e94560{% else %}#e9ecef{% endif %};color:white;font-size:0.8rem;">
+                    {% if step == 'pending' %}1{% elif step == 'confirmed' %}2{% elif step == 'processing' %}3{% elif step == 'shipped' %}4{% else %}5{% endif %}
+                </div>
+                <div class="small text-capitalize text-muted">{{ step }}</div>
+            </div>
+            {% if not forloop.last %}<div class="flex-fill d-flex align-items-start pt-2"><div style="height:2px;width:100%;background:#e9ecef;margin-top:17px;"></div></div>{% endif %}
+            {% endfor %}
+        </div>
+        {% endwith %}
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Items -->
+            <div class="card border-0 shadow-sm rounded-3 p-4 mb-4">
+                <h5 class="fw-700 mb-3">Order Items</h5>
+                {% for item in order.items.all %}
+                <div class="d-flex align-items-center gap-3 py-3 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="rounded-2 overflow-hidden flex-shrink-0" style="width:60px;height:60px;background:#f0f0f0;">
+                        {% if item.product.image %}<img src="{{ item.product.image.url }}" class="w-100 h-100" style="object-fit:cover;">
+                        {% else %}<div class="w-100 h-100 d-flex align-items-center justify-content-center">📦</div>{% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-600">{{ item.product.name }}</div>
+                        <div class="text-muted small">Qty: {{ item.quantity }} × ₹{{ item.price }}</div>
+                    </div>
+                    <div class="fw-700" style="color:#e94560;">₹{{ item.subtotal }}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Shipping Address -->
+            <div class="card border-0 shadow-sm rounded-3 p-4">
+                <h5 class="fw-700 mb-3">Shipping Address</h5>
+                <p class="mb-1 fw-600">{{ order.full_name }}</p>
+                <p class="mb-1 text-muted">{{ order.address }}</p>
+                <p class="mb-1 text-muted">{{ order.city }}, {{ order.state }} — {{ order.pincode }}</p>
+                <p class="mb-0 text-muted"><i class="fas fa-phone me-1"></i>{{ order.phone }}</p>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-3 p-4">
+                <h5 class="fw-700 mb-3">Order Summary</h5>
+                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Subtotal</span><span>₹{{ order.subtotal }}</span></div>
+                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Shipping</span><span>{% if order.shipping_cost == 0 %}Free{% else %}₹{{ order.shipping_cost }}{% endif %}</span></div>
+                <div class="d-flex justify-content-between mb-2"><span class="text-muted">Payment</span><span>{{ order.get_payment_method_display }}</span></div>
+                <hr>
+                <div class="d-flex justify-content-between fw-800 fs-5"><span>Total</span><span style="color:#e94560;">₹{{ order.total }}</span></div>
+
+                {% if order.status in 'pending,confirmed' %}
+                <a href="{% url 'orders:cancel_order' order.pk %}" class="btn btn-outline-danger w-100 mt-4" onclick="return confirm('Cancel this order?')"><i class="fas fa-times me-1"></i>Cancel Order</a>
+                {% endif %}
+                <a href="{% url 'orders:order_list' %}" class="btn btn-outline-secondary w-100 mt-2">← Back to Orders</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
